@@ -1,0 +1,5 @@
+---
+- include_tasks: filter_disks.yml
+- include_tasks: calculate_sizes.yml
+- include_tasks: confirm_device.yml
+

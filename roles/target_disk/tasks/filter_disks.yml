@@ -1,0 +1,12 @@
+- name: Gather facts
+  ansible.builtin.setup:
+    filter: ansible_devices
+
+- name: filter out unrelevant disk devices 
+  set_fact:
+    disk_devices: >-
+      {{
+        ansible_devices | dict2items
+        | rejectattr('value.sectors', 'equalto', '0')  
+        | rejectattr('key', 'match', disk_filter_patterns | join('|'))  
+      }}

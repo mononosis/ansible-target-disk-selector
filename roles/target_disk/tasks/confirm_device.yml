@@ -1,0 +1,59 @@
+- name: sort by number of bytes and then get the name of the last disk device which is the largest
+  set_fact:
+    largest_device: >-
+      {{
+        total_bytes_devices.results | sort( attribute='ansible_facts.total_bytes.0' )  | map(attribute='disk_item.1') | last
+      }}
+
+- name: set confirm devices if skip_confirmation 
+  set_fact:
+    target_device: "{{ largest_device  }}"
+  when: skip_confirmation | bool
+
+- block:
+    - name: Confirm target device
+      pause:
+        prompt: "Is {{ largest_device }} the target device? (yes/no)"
+      register: user_confirmation
+
+    - name: Set fact for largest_device when user confirms
+      set_fact:
+        target_device: "{{ largest_device }}"
+      when: user_confirmation.user_input | lower == 'yes'
+
+    - name: Prompt for device name if the first choice was not correct
+      pause:
+        prompt: "Enter the name of the target device:"
+      when: user_confirmation.user_input | lower != 'yes'
+      register: user_device_input
+
+    - name: Set fact for largest_device when user provides a new device name
+      set_fact:
+        target_device: "{{ user_device_input.user_input }}"
+      when: 
+        - user_confirmation.user_input | lower != 'yes'
+        - user_device_input.user_input in ansible_devices
+
+    - name: Prompt for device name until a valid one is provided or user cancels
+      when: user_confirmation.user_input | lower != 'yes' and user_device_input.user_input not in ansible_devices
+      block:
+        - name: Verify if the device exists or prompt again
+          pause:
+            prompt: "The device '{{ user_device_input.user_input }}' does not exist. Enter the name of the target device, or type 'cancel' to exit:"
+          register: user_device_retry_input
+          until: user_device_retry_input.user_input in ansible_devices or user_device_retry_input.user_input | lower == 'cancel'
+          retries: 3
+          delay: 0
+
+        - name: Cancel playbook if user types 'cancel'
+          meta: end_play
+          when: user_device_retry_input.user_input | lower == 'cancel'
+
+        - name: Set fact for largest_device when user provides a new device name
+          set_fact:
+            target_device: "{{ user_device_retry_input.user_input }}"
+          when: user_device_retry_input.user_input in ansible_devices
+
+  when: not skip_confirmation | bool
+
+

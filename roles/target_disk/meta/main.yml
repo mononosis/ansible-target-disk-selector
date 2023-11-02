@@ -1,0 +1,33 @@
+galaxy_info:
+  author: mononosis
+  description: This role selects the most probable disk for partitioning, with optional manual override.
+  company: Polynosis
+
+  license: Apache 2.0 
+
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: NixOS
+      versions:
+        - 23.05
+
+  dependencies: []
+
+  galaxy_tags:
+    - system
+    - storage
+    - partition
+    - disk_management
+
+  version: 0.1.0  
+
+
+# You can also include a section for role tests, if you have any.
+# If you don't have tests, you can omit this part.
+# tests:
+#   - test_playbook.yml
+
+# Any additional metadata information you want to provide.
+# If you have specific requirements or dependencies, you can list them here.
+

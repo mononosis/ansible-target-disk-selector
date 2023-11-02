@@ -1,0 +1,8 @@
+---
+# Defaults file for disk_setup
+skip_confirmation: false # Whether to skip user confirmation
+disk_filter_patterns: # Patterns to filter out disks
+  - '^loop.*'
+  - '^ram.*'
+  - '^dm-.*'
+

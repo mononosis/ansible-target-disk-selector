@@ -1,0 +1,36 @@
+- name: extract value object from disk_devices dictionary
+  set_fact:
+    disk_devices_value: >-
+      {{
+        disk_devices
+        | map(attribute='value')  
+      }}
+
+- name: extract key object from disk_devices dictionary
+  set_fact:
+    disk_devices_key: >-
+      {{
+        disk_devices
+        | map(attribute='key')  
+      }}
+
+- name: get relevant disk devices such that [  [[sectors, sectorsize], deviceName/key ], ... ]
+  set_fact:
+    calculator_inputs: >-
+      {{
+        disk_devices_value  
+        | map(attribute='sectors')  
+        | map('int')  
+        | zip(disk_devices_value 
+          | map(attribute='sectorsize') 
+          | map('int'))  
+        | zip(disk_devices_key) 
+      }}
+
+- name: calculate the total number of bytes by multiplying sectors by sectorsize for every disk device
+  set_fact:
+    total_bytes: "{{ [disk_item.0.0 * disk_item.0.1] }}"
+  loop: "{{ calculator_inputs }}"
+  loop_control:
+    loop_var: disk_item
+  register: total_bytes_devices
